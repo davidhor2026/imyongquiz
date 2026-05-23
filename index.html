@@ -236,14 +236,13 @@ function speak(text){
     window.speechSynthesis.cancel();
 
     const msg = new SpeechSynthesisUtterance(text);
-
     msg.lang = "ko-KR";
-    msg.rate = 0.9;
-    msg.pitch = 0.65;
+    msg.rate = 0.85;
+    msg.pitch = 0.55;
 
     const voices = window.speechSynthesis.getVoices();
 
-    const koreanMaleVoice = voices.find(voice =>
+    const koreanVoice = voices.find(voice =>
         voice.lang.includes("ko") &&
         (
             voice.name.toLowerCase().includes("male") ||
@@ -252,12 +251,11 @@ function speak(text){
         )
     );
 
-    if(koreanMaleVoice){
-        msg.voice = koreanMaleVoice;
+    if(koreanVoice){
+        msg.voice = koreanVoice;
     }
 
     window.speechSynthesis.speak(msg);
-}
 }
 
 function turnVoiceOn(){
@@ -273,24 +271,33 @@ function turnVoiceOff(){
 }
 
 function loadCSVAutomatically(){
-    fetch("questions.csv?v=" + new Date().getTime())
+    const csvUrl = "questions.csv?time=" + new Date().getTime();
+
+    fetch(csvUrl, { cache: "no-store" })
     .then(response => {
         if(!response.ok){
-            throw new Error("questions.csv 파일을 찾을 수 없습니다.");
+            throw new Error("HTTP 오류: " + response.status);
         }
         return response.text();
     })
     .then(text => {
         quizData = parseCSV(text);
 
+        if(quizData.length === 0){
+            throw new Error("CSV를 읽었지만 문제를 찾지 못했습니다. 쉼표 개수나 첫 줄 제목을 확인하세요.");
+        }
+
         document.getElementById("speech").innerHTML =
         "문제 " + quizData.length + "개를 불러왔습니다. 과목을 선택하세요.";
     })
     .catch(error => {
         document.getElementById("speech").innerHTML =
-        "문제 파일을 자동으로 불러오지 못했습니다.";
-
-        alert("questions.csv 자동 로딩 실패");
+        "문제 파일을 불러오지 못했습니다.<br><br>" +
+        "확인할 것:<br>" +
+        "1. 파일명이 questions.csv 인지 확인<br>" +
+        "2. index.html과 같은 위치에 있는지 확인<br>" +
+        "3. GitHub에서 Commit changes 했는지 확인<br><br>" +
+        "오류 내용: " + error.message;
     });
 }
 
@@ -299,7 +306,13 @@ function parseCSV(text){
     const data = [];
 
     for(let i = 1; i < lines.length; i++){
-        const row = lines[i].split(",");
+        const line = lines[i].trim();
+
+        if(line === ""){
+            continue;
+        }
+
+        const row = line.split(",");
 
         if(row.length >= 10){
             data.push({
@@ -396,6 +409,7 @@ function loadQuestion(){
     document.getElementById("explanation").innerHTML = "";
 
     answered = false;
+
     makeAnswerButtons(q);
 
     speak("문제입니다. " + q.question);
@@ -440,7 +454,12 @@ function checkAnswer(answer){
         document.getElementById("teacherImage").src = "wrong.png";
         document.getElementById("speechBox").innerHTML = "오답입니다. 오답노트에 저장했습니다.";
         saveWrongQuestion(q);
-        speak("오답입니다. 정답은 " + q.answer + "번입니다.");
+
+        if(q.type === "MCQ"){
+            speak("오답입니다. 정답은 " + q.answer + "번입니다.");
+        }else{
+            speak("오답입니다. 정답은 " + q.answer + "입니다.");
+        }
     }
 
     document.getElementById("score").innerHTML =
