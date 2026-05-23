@@ -229,16 +229,35 @@ window.onload = function(){
 };
 
 function speak(text){
-    if(!voiceOn){ return; }
+    if(!voiceOn){
+        return;
+    }
 
     window.speechSynthesis.cancel();
 
     const msg = new SpeechSynthesisUtterance(text);
+
     msg.lang = "ko-KR";
     msg.rate = 0.9;
-    msg.pitch = 1;
+    msg.pitch = 0.65;
+
+    const voices = window.speechSynthesis.getVoices();
+
+    const koreanMaleVoice = voices.find(voice =>
+        voice.lang.includes("ko") &&
+        (
+            voice.name.toLowerCase().includes("male") ||
+            voice.name.includes("남성") ||
+            voice.name.includes("Google")
+        )
+    );
+
+    if(koreanMaleVoice){
+        msg.voice = koreanMaleVoice;
+    }
 
     window.speechSynthesis.speak(msg);
+}
 }
 
 function turnVoiceOn(){
