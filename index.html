@@ -237,23 +237,8 @@ function speak(text){
 
     const msg = new SpeechSynthesisUtterance(text);
     msg.lang = "ko-KR";
-    msg.rate = 0.85;
-    msg.pitch = 0.55;
-
-    const voices = window.speechSynthesis.getVoices();
-
-    const koreanVoice = voices.find(voice =>
-        voice.lang.includes("ko") &&
-        (
-            voice.name.toLowerCase().includes("male") ||
-            voice.name.includes("남성") ||
-            voice.name.includes("Google")
-        )
-    );
-
-    if(koreanVoice){
-        msg.voice = koreanVoice;
-    }
+    msg.rate = 0.9;
+    msg.pitch = 1;
 
     window.speechSynthesis.speak(msg);
 }
