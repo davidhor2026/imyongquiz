@@ -3,7 +3,7 @@ const CACHE_NAME = "teacher-quiz-cache-v2";
 const urlsToCache = [
   "./",
   "./index.html",
-  "./questions.csv",
+  "./questions.csv?v=60",
   "./teacher.png",
   "./correct.png",
   "./wrong.png",
