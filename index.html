@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+
+<title>임용고시 퀴즈</title>
+
+<meta property="og:title" content="임용고시 퀴즈">
+<meta property="og:description" content="임용 준비생을 위한 OX + 사지선다 퀴즈">
+<meta property="og:image" content="teacher.png">
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2f80ed">
+
+<style>
+body{
+    background:#f2f2f2;
+    font-family:Arial;
+    text-align:center;
+    padding:8px;
+    margin:0;
+}
+
+.box{
+    background:white;
+    width:96%;
+    max-width:760px;
+    margin:auto;
+    padding:26px 14px;
+    border-radius:24px;
+}
+
+img{
+    width:260px;
+    border-radius:22px;
+    max-width:92%;
+}
+
+button{
+    font-size:24px;
+    padding:16px 26px;
+    margin:9px;
+    border:none;
+    border-radius:16px;
+    background:#2f80ed;
+    color:white;
+    cursor:pointer;
+    width:90%;
+    max-width:420px;
+}
+
+.red{background:#e74c3c;}
+.gray{background:#777;}
+.green{background:#27ae60;}
+
+.question{
+    font-size:30px;
+    margin-top:24px;
+    line-height:1.7;
+    font-weight:bold;
+    word-break:keep-all;
+}
+
+.choiceBtn{
+    display:block;
+    margin:10px auto;
+    background:#2f80ed;
+    text-align:left;
+}
+
+#speech,
+#speechBox{
+    background:#fff4cc;
+    padding:16px;
+    border-radius:18px;
+    margin:16px 0;
+    font-weight:bold;
+    font-size:24px;
+    line-height:1.6;
+}
+
+#number,
+#score,
+#categoryText,
+#sourceText,
+#typeText{
+    color:#777;
+    margin-top:10px;
+    font-size:20px;
+}
+
+#result{
+    margin-top:22px;
+    font-size:34px;
+    font-weight:bold;
+}
+
+#explanation{
+    margin-top:20px;
+    color:#555;
+    line-height:1.8;
+    font-size:24px;
+    text-align:left;
+    padding:0 8px;
+}
+
+#quizScreen,
+#finalScreen,
+#wrongNoteScreen{
+    display:none;
+}
+
+.wrongItem{
+    text-align:left;
+    background:#f7f7f7;
+    margin:12px;
+    padding:16px;
+    border-radius:16px;
+    line-height:1.7;
+    font-size:22px;
+}
+
+h1{
+    font-size:42px;
+    margin-bottom:20px;
+    line-height:1.25;
+}
+
+h2{
+    font-size:34px;
+}
+
+@media (max-width:600px){
+    body{padding:4px;}
+    .box{width:98%; padding:28px 10px;}
+    h1{font-size:46px;}
+    img{width:320px;}
+    .question{font-size:36px; line-height:1.75;}
+    button{font-size:30px; padding:18px 22px;}
+    #speech,#speechBox{font-size:28px;}
+    #number,#score,#categoryText,#sourceText,#typeText{font-size:24px;}
+    #result{font-size:38px;}
+    #explanation{font-size:28px;}
+    .wrongItem{font-size:24px;}
+}
+</style>
+</head>
+
+<body>
+<div class="box">
+<h1>임용고시 퀴즈</h1>
+
+<div id="startScreen">
+    <img src="teacher.png">
+    <div id="speech">문제 데이터를 불러오는 중입니다...</div>
+
+    <button class="green" onclick="turnVoiceOn()">음성 켜기</button>
+    <button class="gray" onclick="turnVoiceOff()">음성 끄기</button>
+
+    <br>
+
+    <button onclick="startQuiz('전체')">전체 랜덤</button>
+    <button onclick="startQuiz('수학')">수학</button>
+    <button onclick="startQuiz('과학')">과학</button>
+    <button onclick="startQuiz('사회')">사회</button>
+    <button onclick="startQuiz('국어')">국어</button>
+    <button onclick="startQuiz('교육학')">교육학</button>
+    <button onclick="startQuiz('영어')">영어</button>
+    <button onclick="startQuiz('통합교과')">통합교과</button>
+
+    <br>
+    <button class="red" onclick="showWrongNote()">오답노트 보기</button>
+    <button class="green" onclick="startWrongQuiz()">오답만 다시 풀기</button>
+</div>
+
+<div id="quizScreen">
+    <img id="teacherImage" src="teacher.png">
+    <div id="speechBox">문제를 풀어보세요.</div>
+
+    <div id="categoryText"></div>
+    <div id="sourceText"></div>
+    <div id="typeText"></div>
+    <div id="number"></div>
+    <div id="score"></div>
+
+    <div class="question" id="question"></div>
+
+    <div id="answerButtons"></div>
+
+    <br>
+    <button onclick="nextQuestion()">다음 문제</button>
+    <button class="gray" onclick="goHome()">처음으로</button>
+
+    <div id="result"></div>
+    <div id="explanation"></div>
+</div>
+
+<div id="finalScreen">
+    <img src="correct.png">
+    <h2>퀴즈 완료!</h2>
+    <div id="finalScore" style="font-size:34px;font-weight:bold;"></div>
+    <p id="finalMessage"></p>
+    <button onclick="goHome()">처음으로</button>
+    <button onclick="restartSameQuiz()">다시 풀기</button>
+    <button class="red" onclick="showWrongNote()">오답노트 보기</button>
+</div>
+
+<div id="wrongNoteScreen">
+    <h2>오답노트</h2>
+    <div id="wrongList"></div>
+    <button class="green" onclick="startWrongQuiz()">오답만 다시 풀기</button>
+    <button class="red" onclick="clearWrongNote()">오답노트 삭제</button>
+    <button onclick="goHome()">처음으로</button>
+</div>
+
+</div>
+
+<script>
+let quizData = [];
+let selectedQuiz = [];
+let currentQuestion = 0;
+let score = 0;
+let answered = false;
+let quizMode = "일반";
+let voiceOn = false;
+
+window.onload = function(){
+    loadCSVAutomatically();
+};
+
+function speak(text){
+    if(!voiceOn){ return; }
+
+    window.speechSynthesis.cancel();
+
+    const msg = new SpeechSynthesisUtterance(text);
+    msg.lang = "ko-KR";
+    msg.rate = 0.9;
+    msg.pitch = 1;
+
+    window.speechSynthesis.speak(msg);
+}
+
+function turnVoiceOn(){
+    voiceOn = true;
+    speak("음성 안내를 시작합니다.");
+    alert("음성 안내가 켜졌습니다.");
+}
+
+function turnVoiceOff(){
+    voiceOn = false;
+    window.speechSynthesis.cancel();
+    alert("음성 안내가 꺼졌습니다.");
+}
+
+function loadCSVAutomatically(){
+    fetch("questions.csv")
+    .then(response => {
+        if(!response.ok){
+            throw new Error("questions.csv 파일을 찾을 수 없습니다.");
+        }
+        return response.text();
+    })
+    .then(text => {
+        quizData = parseCSV(text);
+
+        document.getElementById("speech").innerHTML =
+        "문제 " + quizData.length + "개를 불러왔습니다. 과목을 선택하세요.";
+    })
+    .catch(error => {
+        document.getElementById("speech").innerHTML =
+        "문제 파일을 자동으로 불러오지 못했습니다.";
+
+        alert("questions.csv 자동 로딩 실패");
+    });
+}
+
+function parseCSV(text){
+    const lines = text.trim().split(/\r?\n/);
+    const data = [];
+
+    for(let i = 1; i < lines.length; i++){
+        const row = lines[i].split(",");
+
+        if(row.length >= 10){
+            data.push({
+                type: row[0].trim(),
+                category: row[1].trim(),
+                source: row[2].trim(),
+                question: row[3].trim(),
+                choice1: row[4].trim(),
+                choice2: row[5].trim(),
+                choice3: row[6].trim(),
+                choice4: row[7].trim(),
+                answer: row[8].trim(),
+                explanation: row.slice(9).join(",").trim()
+            });
+        }
+    }
+
+    return data;
+}
+
+function shuffle(array){
+    return array.sort(() => Math.random() - 0.5);
+}
+
+function startQuiz(category){
+    if(quizData.length === 0){
+        alert("문제 데이터를 아직 불러오지 못했습니다.");
+        return;
+    }
+
+    quizMode = category;
+
+    if(category === "전체"){
+        selectedQuiz = shuffle([...quizData]);
+    }else{
+        selectedQuiz = shuffle(quizData.filter(q => q.category === category));
+    }
+
+    if(selectedQuiz.length === 0){
+        alert("해당 과목의 문제가 없습니다.");
+        return;
+    }
+
+    speak(category + " 퀴즈를 시작합니다.");
+    startSelectedQuiz();
+}
+
+function startWrongQuiz(){
+    const wrongNote = JSON.parse(localStorage.getItem("wrongNote")) || [];
+
+    if(wrongNote.length === 0){
+        alert("저장된 오답이 없습니다.");
+        return;
+    }
+
+    quizMode = "오답노트";
+    selectedQuiz = shuffle([...wrongNote]);
+
+    speak("오답노트 퀴즈를 시작합니다.");
+    startSelectedQuiz();
+}
+
+function startSelectedQuiz(){
+    currentQuestion = 0;
+    score = 0;
+    answered = false;
+
+    document.getElementById("startScreen").style.display = "none";
+    document.getElementById("wrongNoteScreen").style.display = "none";
+    document.getElementById("finalScreen").style.display = "none";
+    document.getElementById("quizScreen").style.display = "block";
+
+    loadQuestion();
+}
+
+function loadQuestion(){
+    let q = selectedQuiz[currentQuestion];
+
+    document.getElementById("teacherImage").src = "teacher.png";
+    document.getElementById("speechBox").innerHTML = "문장을 끝까지 읽고 판단하세요.";
+    document.getElementById("categoryText").innerHTML = "과목: " + q.category;
+    document.getElementById("sourceText").innerHTML = "검수표시: " + q.source;
+    document.getElementById("typeText").innerHTML =
+    q.type === "MCQ" ? "유형: 사지선다" : "유형: OX";
+
+    document.getElementById("number").innerHTML =
+    "문제 " + (currentQuestion + 1) + " / " + selectedQuiz.length + " (" + quizMode + ")";
+
+    document.getElementById("score").innerHTML =
+    "점수: " + score + " / " + selectedQuiz.length;
+
+    document.getElementById("question").innerHTML = q.question;
+    document.getElementById("result").innerHTML = "";
+    document.getElementById("explanation").innerHTML = "";
+
+    answered = false;
+    makeAnswerButtons(q);
+
+    speak("문제입니다. " + q.question);
+}
+
+function makeAnswerButtons(q){
+    const area = document.getElementById("answerButtons");
+    area.innerHTML = "";
+
+    if(q.type === "OX"){
+        area.innerHTML += '<button onclick="checkAnswer(\'O\')">O</button>';
+        area.innerHTML += '<button onclick="checkAnswer(\'X\')">X</button>';
+    }else{
+        area.innerHTML += '<button class="choiceBtn" onclick="checkAnswer(\'1\')">1. ' + q.choice1 + '</button>';
+        area.innerHTML += '<button class="choiceBtn" onclick="checkAnswer(\'2\')">2. ' + q.choice2 + '</button>';
+        area.innerHTML += '<button class="choiceBtn" onclick="checkAnswer(\'3\')">3. ' + q.choice3 + '</button>';
+        area.innerHTML += '<button class="choiceBtn" onclick="checkAnswer(\'4\')">4. ' + q.choice4 + '</button>';
+    }
+}
+
+function checkAnswer(answer){
+    if(answered){
+        return;
+    }
+
+    answered = true;
+    let q = selectedQuiz[currentQuestion];
+
+    if(answer === q.answer){
+        score++;
+        document.getElementById("result").innerHTML = "정답입니다!";
+        document.getElementById("teacherImage").src = "correct.png";
+        document.getElementById("speechBox").innerHTML = "좋습니다. 정답입니다.";
+        speak("정답입니다.");
+
+        if(quizMode === "오답노트"){
+            removeFromWrongNote(q);
+        }
+
+    }else{
+        document.getElementById("result").innerHTML = "오답입니다.";
+        document.getElementById("teacherImage").src = "wrong.png";
+        document.getElementById("speechBox").innerHTML = "오답입니다. 오답노트에 저장했습니다.";
+        saveWrongQuestion(q);
+        speak("오답입니다. 정답은 " + q.answer + "번입니다.");
+    }
+
+    document.getElementById("score").innerHTML =
+    "점수: " + score + " / " + selectedQuiz.length;
+
+    document.getElementById("explanation").innerHTML =
+    "정답: " + q.answer + "<br>" + q.explanation;
+}
+
+function nextQuestion(){
+    if(!answered){
+        alert("먼저 답을 선택하세요.");
+        return;
+    }
+
+    if(currentQuestion === selectedQuiz.length - 1){
+        showFinalScreen();
+        return;
+    }
+
+    currentQuestion++;
+    loadQuestion();
+}
+
+function showFinalScreen(){
+    document.getElementById("quizScreen").style.display = "none";
+    document.getElementById("finalScreen").style.display = "block";
+
+    document.getElementById("finalScore").innerHTML =
+    "최종 점수: " + score + " / " + selectedQuiz.length;
+
+    let percent = Math.round((score / selectedQuiz.length) * 100);
+    let message = "";
+
+    if(percent >= 90){
+        message = "매우 좋습니다. 안정적으로 이해하고 있습니다.";
+    }else if(percent >= 70){
+        message = "좋습니다. 오답노트를 반복하면 더 좋아집니다.";
+    }else{
+        message = "오답노트 중심으로 다시 반복하는 것이 좋습니다.";
+    }
+
+    document.getElementById("finalMessage").innerHTML = message;
+    speak("퀴즈가 완료되었습니다. 최종 점수는 " + score + "점입니다.");
+}
+
+function restartSameQuiz(){
+    selectedQuiz = shuffle([...selectedQuiz]);
+    currentQuestion = 0;
+    score = 0;
+    answered = false;
+
+    document.getElementById("finalScreen").style.display = "none";
+    document.getElementById("quizScreen").style.display = "block";
+
+    loadQuestion();
+}
+
+function saveWrongQuestion(q){
+    let wrongNote = JSON.parse(localStorage.getItem("wrongNote")) || [];
+    let exists = wrongNote.some(item => item.question === q.question);
+
+    if(!exists){
+        wrongNote.push(q);
+        localStorage.setItem("wrongNote", JSON.stringify(wrongNote));
+    }
+}
+
+function removeFromWrongNote(q){
+    let wrongNote = JSON.parse(localStorage.getItem("wrongNote")) || [];
+    wrongNote = wrongNote.filter(item => item.question !== q.question);
+    localStorage.setItem("wrongNote", JSON.stringify(wrongNote));
+}
+
+function showWrongNote(){
+    document.getElementById("startScreen").style.display = "none";
+    document.getElementById("quizScreen").style.display = "none";
+    document.getElementById("finalScreen").style.display = "none";
+    document.getElementById("wrongNoteScreen").style.display = "block";
+
+    let wrongNote = JSON.parse(localStorage.getItem("wrongNote")) || [];
+    let html = "";
+
+    if(wrongNote.length === 0){
+        html = "<p>아직 저장된 오답이 없습니다.</p>";
+    }else{
+        wrongNote.forEach((q, index) => {
+            html += "<div class='wrongItem'>";
+            html += "<b>" + (index + 1) + ". [" + q.category + " / " + q.type + "]</b><br>";
+            html += "<span style='color:#777;'>" + q.source + "</span><br>";
+            html += q.question + "<br>";
+
+            if(q.type === "MCQ"){
+                html += "1. " + q.choice1 + "<br>";
+                html += "2. " + q.choice2 + "<br>";
+                html += "3. " + q.choice3 + "<br>";
+                html += "4. " + q.choice4 + "<br>";
+            }
+
+            html += "<b>정답: " + q.answer + "</b><br>";
+            html += "<span style='color:#555;'>" + q.explanation + "</span>";
+            html += "</div>";
+        });
+    }
+
+    document.getElementById("wrongList").innerHTML = html;
+}
+
+function clearWrongNote(){
+    const ok = confirm("오답노트를 모두 삭제할까요?");
+
+    if(ok){
+        localStorage.removeItem("wrongNote");
+        showWrongNote();
+    }
+}
+
+function goHome(){
+    window.speechSynthesis.cancel();
+
+    document.getElementById("startScreen").style.display = "block";
+    document.getElementById("quizScreen").style.display = "none";
+    document.getElementById("finalScreen").style.display = "none";
+    document.getElementById("wrongNoteScreen").style.display = "none";
+}
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./service-worker.js')
+    .then(function(registration) {
+      console.log('Service Worker 등록 성공:', registration.scope);
+    })
+    .catch(function(error) {
+      console.log('Service Worker 등록 실패:', error);
+    });
+}
+</script>
+</body>
+</html>
